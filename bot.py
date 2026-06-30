@@ -38,7 +38,7 @@ dp = Dispatcher(storage=MemoryStorage())
 # ========== ХРАНИЛИЩЕ ==========
 orders = {}
 order_counter = [0]
-  USERS_FILE = "users.json"
+USERS_FILE = "users.json"
 
 def load_users():
     if os.path.exists(USERS_FILE):
