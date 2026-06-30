@@ -164,6 +164,9 @@ async def cb_lang(cq: CallbackQuery, state: FSMContext):
     save_users()
 
     users[uid]['name'] = cq.from_user.full_name
+    users[uid]['username'] = cq.from_user.username or 'нет'
+    save_users()
+
 
     await cq.message.delete()
 
@@ -633,8 +636,9 @@ async def cmd_users(msg: Message):
         name = data.get('name', 'Неизвестно')
         phone = data.get('phone', 'нет')
         lang = data.get('lang', 'ru')
-        text += f"👤 {name}\n📞 {phone}\n🌐 {lang}\n➖➖➖➖➖➖\n"
-    await msg.answer(text)
+        username = data.get('username', 'нет')
+text += f"👤 {name}\n🆔 {uid}\n👤 @{username}\n📞 {phone}\n🌐 {lang}\n➖➖➖➖➖➖\n"
+
 
 @dp.message(Command("broadcast"))
 async def cmd_broadcast(msg: Message):
