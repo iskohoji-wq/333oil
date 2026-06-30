@@ -637,7 +637,7 @@ async def cmd_users(msg: Message):
         phone = data.get('phone', 'нет')
         lang = data.get('lang', 'ru')
         username = data.get('username', 'нет')
-text += f"👤 {name}\n🆔 {uid}\n👤 @{username}\n📞 {phone}\n🌐 {lang}\n➖➖➖➖➖➖\n"
+        text += f"👤 {name}\n🆔 {uid}\n👤 @{username}\n📞 {phone}\n🌐 {lang}\n➖➖➖➖➖➖\n"
 
 
 @dp.message(Command("broadcast"))
