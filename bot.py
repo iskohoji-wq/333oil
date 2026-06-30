@@ -38,7 +38,21 @@ dp = Dispatcher(storage=MemoryStorage())
 # ========== ХРАНИЛИЩЕ ==========
 orders = {}
 order_counter = [0]
-users = {}       # user_id -> {phone, lang, name, verified}
+  USERS_FILE = "users.json"
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            data = json.load(f)
+            return {int(k): v for k, v in data.items()}
+    return {}
+
+def save_users():
+    with open(USERS_FILE, "w") as f:
+        json.dump({str(k): v for k, v in users.items()}, f)
+
+users = load_users()
+      # user_id -> {phone, lang, name, verified}
 otp_codes = {}   # user_id -> code
 admin_users = set()
 waiting_pin = set()
