@@ -620,6 +620,22 @@ async def cb_client_cancel(cq: CallbackQuery):
         await bot.send_message(ADMIN_ID, f"❌ Клиент отменил заказ #{oid}")
     await cq.answer("❌ Отменён")
 # ========== РАССЫЛКА ==========
+# ========== СПИСОК ПОЛЬЗОВАТЕЛЕЙ ==========
+@dp.message(Command("users"))
+async def cmd_users(msg: Message):
+    if msg.from_user.id != ADMIN_ID:
+        return
+    if not users:
+        await msg.answer("Пользователей нет")
+        return
+    text = f"👥 Всего пользователей: {len(users)}\n\n"
+    for uid, data in users.items():
+        name = data.get('name', 'Неизвестно')
+        phone = data.get('phone', 'нет')
+        lang = data.get('lang', 'ru')
+        text += f"👤 {name}\n📞 {phone}\n🌐 {lang}\n➖➖➖➖➖➖\n"
+    await msg.answer(text)
+
 @dp.message(Command("broadcast"))
 async def cmd_broadcast(msg: Message):
     if msg.from_user.id != ADMIN_ID:
