@@ -161,6 +161,8 @@ async def cb_lang(cq: CallbackQuery, state: FSMContext):
     if uid not in users:
         users[uid] = {}
     users[uid]['lang'] = lang
+    save_users()
+
     users[uid]['name'] = cq.from_user.full_name
 
     await cq.message.delete()
