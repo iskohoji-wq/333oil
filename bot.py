@@ -603,6 +603,23 @@ async def cb_client_cancel(cq: CallbackQuery):
     if ADMIN_ID:
         await bot.send_message(ADMIN_ID, f"❌ Клиент отменил заказ #{oid}")
     await cq.answer("❌ Отменён")
+# ========== РАССЫЛКА ==========
+@dp.message(Command("broadcast"))
+async def cmd_broadcast(msg: Message):
+    if msg.from_user.id != ADMIN_ID:
+        return
+    text = msg.text.replace("/broadcast", "").strip()
+    if not text:
+        await msg.answer("Напишите текст: /broadcast Ваше сообщение")
+        return
+    count = 0
+    for uid in users:
+        try:
+            await bot.send_message(uid, text)
+            count += 1
+        except:
+            pass
+    await msg.answer(f"✅ Отправлено {count} пользователям")
 
 # ========== ЗАПУСК ==========
 async def main():
