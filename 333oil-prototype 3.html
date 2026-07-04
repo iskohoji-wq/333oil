@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<title>333 OIL</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root {
+  --gold:#F5A623; --gold-dark:#C8861A; --orange:#E8660A;
+  --bg:#0A0A0A; --bg2:#141414; --bg3:#1E1E1E; --bg4:#2A2A2A;
+  --text:#F0F0F0; --text2:#A0A0A0;
+  --green:#27AE60; --red:#E74C3C; --blue:#2980B9;
+  --r:16px; --rs:10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,'SF Pro Display','Segoe UI',sans-serif; display:flex; justify-content:center; min-height:100vh; }
+.phone { width:100%; max-width:420px; min-height:100vh; background:var(--bg); position:relative; }
+.screen { display:none; flex-direction:column; min-height:100vh; animation:fi .25s ease; }
+.screen.active { display:flex; }
+@keyframes fi { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* HEADER */
+.hdr { background:var(--bg2); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #2A2A2A; position:sticky; top:0; z-index:100; }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-ic { width:34px; height:34px; background:linear-gradient(135deg,var(--gold),var(--orange)); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:17px; }
+.logo-tx { font-size:17px; font-weight:700; color:var(--gold); letter-spacing:1px; }
+.hdr-back { background:var(--bg3); border:none; color:var(--gold); padding:7px 13px; border-radius:20px; font-size:13px; cursor:pointer; }
+.hdr-title { font-size:15px; font-weight:600; }
+.hdr-act { background:none; border:none; color:var(--text2); font-size:19px; cursor:pointer; }
+
+/* LANG */
+.lsw { display:flex; background:var(--bg3); border-radius:20px; overflow:hidden; border:1px solid #333; }
+.lbtn { padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; border:none; background:transparent; color:var(--text2); transition:all .2s; }
+.lbtn.active { background:var(--gold); color:#000; }
+
+/* CONTENT */
+.cnt { flex:1; overflow-y:auto; padding:18px; padding-bottom:95px; }
+.cnt-np { flex:1; overflow-y:auto; padding-bottom:80px; }
+
+/* BOTTOM NAV */
+.bnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:420px; background:var(--bg2); border-top:1px solid #2A2A2A; display:flex; z-index:200; }
+.nitem { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:9px 4px; cursor:pointer; border:none; background:none; color:var(--text2); font-size:10px; gap:3px; transition:color .2s; }
+.nitem.active { color:var(--gold); }
+.nic { font-size:21px; }
+
+/* CARDS */
+.card { background:var(--bg2); border-radius:var(--r); padding:16px; margin-bottom:12px; border:1px solid #2A2A2A; }
+.ctitle { font-size:12px; color:var(--text2); margin-bottom:9px; text-transform:uppercase; letter-spacing:.5px; }
+
+/* PRICE GRID */
+.pgrid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:18px; }
+.pcrd { background:var(--bg2); border-radius:var(--r); padding:14px; border:1px solid #2A2A2A; text-align:center; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+.pcrd:active { transform:scale(.97); }
+.pcrd::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--orange)); }
+.pcrd .fn { font-size:14px; font-weight:700; color:var(--gold); margin-bottom:5px; }
+.pcrd .fp { font-size:17px; font-weight:800; }
+.pcrd .fu { font-size:11px; color:var(--text2); margin-top:2px; }
+
+/* BUTTONS */
+.btn { width:100%; padding:15px; border-radius:var(--r); border:none; font-size:15px; font-weight:700; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn:active { transform:scale(.98); }
+.bp { background:linear-gradient(135deg,var(--gold),var(--orange)); color:#000; }
+.bs { background:var(--bg3); color:var(--text); border:1px solid #333; }
+.bd { background:var(--red); color:#fff; }
+.bsm { padding:9px 14px; font-size:13px; border-radius:var(--rs); }
+
+/* ORDER BTN */
+.obtn { background:linear-gradient(135deg,var(--gold),var(--orange)); border-radius:var(--r); padding:17px; text-align:center; cursor:pointer; margin-bottom:18px; font-size:17px; font-weight:800; color:#000; box-shadow:0 4px 20px rgba(245,166,35,.3); transition:all .2s; }
+.obtn:active { transform:scale(.98); box-shadow:none; }
+
+/* FUEL OPTIONS */
+.fopt { background:var(--bg2); border-radius:var(--r); padding:15px 17px; margin-bottom:9px; border:2px solid transparent; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all .2s; }
+.fopt.sel { border-color:var(--gold); background:rgba(245,166,35,.08); }
+.fopt:active { transform:scale(.98); }
+.fopt-l { display:flex; align-items:center; gap:11px; }
+.fopt-ic { font-size:22px; }
+.fopt-name { font-size:15px; font-weight:700; }
+.fopt-desc { font-size:11px; color:var(--text2); margin-top:2px; }
+.fopt-price { font-size:15px; font-weight:800; color:var(--gold); }
+.fopt.unavail { opacity:.4; pointer-events:none; }
+.unavail-badge { font-size:11px; color:var(--red); font-weight:700; padding:3px 8px; background:rgba(231,76,60,.1); border-radius:10px; }
+
+/* LITERS */
+.lpresets { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+.lbtn2 { background:var(--bg3); border:2px solid transparent; border-radius:var(--rs); padding:13px 6px; text-align:center; cursor:pointer; transition:all .2s; color:var(--text); }
+.lbtn2.sel { border-color:var(--gold); background:rgba(245,166,35,.1); color:var(--gold); font-weight:700; }
+.lbtn2:active { transform:scale(.95); }
+.lv { font-size:19px; font-weight:800; }
+.lu { font-size:11px; color:var(--text2); }
+.linput { background:var(--bg3); border:1px solid #333; border-radius:var(--rs); padding:13px 15px; width:100%; color:var(--text); font-size:16px; text-align:center; margin-bottom:14px; }
+.linput:focus { outline:none; border-color:var(--gold); }
+
+/* PAYMENT */
+.paygrid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.payopt { background:var(--bg3); border:2px solid transparent; border-radius:var(--rs); padding:13px; text-align:center; cursor:pointer; transition:all .2s; }
+.payopt.sel { border-color:var(--gold); background:rgba(245,166,35,.1); }
+.payopt:active { transform:scale(.96); }
+.payic { font-size:22px; margin-bottom:4px; }
+.paynm { font-size:12px; font-weight:600; }
+
+/* TRACK */
+.strack { padding:8px 0; }
+.sstep { display:flex; align-items:flex-start; gap:13px; position:relative; }
+.sstep:not(:last-child)::after { content:''; position:absolute; left:16px; top:36px; width:2px; height:34px; background:var(--bg4); }
+.sstep.done::after { background:var(--gold); }
+.sdot { width:34px; height:34px; border-radius:50%; background:var(--bg4); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; margin-bottom:34px; }
+.sstep.done .sdot { background:var(--gold); }
+.sstep.cur .sdot { background:var(--orange); box-shadow:0 0 0 4px rgba(232,102,10,.2); animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 4px rgba(232,102,10,.2)} 50%{box-shadow:0 0 0 8px rgba(232,102,10,.1)} }
+.slabel { font-size:14px; font-weight:600; padding-top:7px; }
+.stime { font-size:11px; color:var(--text2); margin-top:2px; }
+
+/* MAP */
+.mapc { height:250px; border-radius:var(--r); overflow:hidden; margin-bottom:14px; }
+
+/* DRIVER CARD */
+.dcrd { background:var(--bg2); border-radius:var(--r); padding:15px; display:flex; align-items:center; gap:13px; margin-bottom:13px; border:1px solid #2A2A2A; }
+.dav { width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--orange)); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.dname { font-size:15px; font-weight:700; }
+.dsub { font-size:12px; color:var(--text2); margin-top:2px; }
+.dcall { background:var(--green); border:none; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; font-size:19px; cursor:pointer; }
+.dcall:active { transform:scale(.9); }
+
+/* PIN */
+.pinsc { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:35px 28px; gap:22px; }
+.pdots { display:flex; gap:15px; }
+.pdot { width:17px; height:17px; border-radius:50%; border:2px solid var(--gold); background:transparent; transition:all .2s; }
+.pdot.fill { background:var(--gold); }
+.pdot.err { border-color:var(--red); background:var(--red); animation:shake .3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.pkbd { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; width:100%; max-width:270px; }
+.pkey { background:var(--bg2); border:1px solid #2A2A2A; border-radius:var(--r); padding:17px; font-size:21px; font-weight:700; color:var(--text); cursor:pointer; text-align:center; transition:all .15s; user-select:none; }
+.pkey:active { background:var(--bg4); transform:scale(.93); }
+.pkey.del { font-size:17px; color:var(--text2); }
+.pkey.emp { background:transparent; border-color:transparent; cursor:default; }
+.perr { color:var(--red); font-size:13px; font-weight:600; display:none; }
+.perr.show { display:block; }
+
+/* ADMIN */
+.adhdr { background:linear-gradient(135deg,#1A0A00,#0A0A0A); padding:18px; border-bottom:1px solid var(--gold-dark); }
+.adtitle { font-size:19px; font-weight:800; color:var(--gold); }
+.adsub { font-size:12px; color:var(--text2); margin-top:3px; }
+.adtabs { display:flex; background:var(--bg2); border-bottom:1px solid #2A2A2A; overflow-x:auto; scrollbar-width:none; }
+.adtabs::-webkit-scrollbar { display:none; }
+.adtab { flex-shrink:0; padding:11px 14px; font-size:12px; font-weight:600; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s; }
+.adtab.active { color:var(--gold); border-bottom-color:var(--gold); }
+.adcnt { display:none; }
+.adcnt.active { display:block; }
+
+/* ORDER CARD */
+.ocrd { background:var(--bg2); border-radius:var(--r); padding:15px; margin-bottom:11px; border:1px solid #2A2A2A; border-left:4px solid var(--gold); }
+.ocrd.onew { border-left-color:var(--orange); }
+.ocrd.oact { border-left-color:var(--blue); }
+.ocrd.odone { border-left-color:var(--green); }
+.otop { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:9px; }
+.oid { font-size:11px; color:var(--text2); }
+.obadge { font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; background:rgba(245,166,35,.15); color:var(--gold); }
+.obadge.bnew { background:rgba(232,102,10,.15); color:var(--orange); }
+.obadge.bact { background:rgba(41,128,185,.15); color:#5DADE2; }
+.obadge.bdone { background:rgba(39,174,96,.15); color:var(--green); }
+.oclient { font-size:15px; font-weight:700; margin-bottom:5px; }
+.odet { font-size:12px; color:var(--text2); line-height:1.8; }
+.odet-row { display:flex; align-items:center; gap:5px; }
+.oacts { display:flex; gap:7px; margin-top:11px; }
+.oabtn { flex:1; padding:9px; border-radius:var(--rs); border:none; font-size:12px; font-weight:700; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:5px; }
+.oabtn:active { transform:scale(.96); }
+.oacc { background:var(--green); color:#fff; }
+.odon { background:var(--gold); color:#000; }
+.ocal { background:var(--bg3); color:var(--text); border:1px solid #333; }
+
+/* STATS */
+.sgrid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:18px; }
+.scrd { background:var(--bg2); border-radius:var(--r); padding:15px; border:1px solid #2A2A2A; text-align:center; }
+.sval { font-size:22px; font-weight:800; color:var(--gold); }
+.slbl { font-size:11px; color:var(--text2); margin-top:3px; }
+
+/* PRICE ROW */
+.prow { display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #1E1E1E; }
+.prow:last-child { border-bottom:none; }
+.prow-l { display:flex; align-items:center; gap:9px; }
+.prow-name { font-size:14px; font-weight:600; }
+.pinput2 { background:var(--bg3); border:1px solid #333; border-radius:var(--rs); padding:7px 11px; color:var(--gold); font-size:14px; font-weight:700; width:110px; text-align:right; }
+.pinput2:focus { outline:none; border-color:var(--gold); }
+
+/* TANK */
+.tbar-bg { background:var(--bg4); border-radius:20px; height:22px; overflow:hidden; margin:14px 0 8px; }
+.tbar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,var(--gold),var(--orange)); transition:width .5s; }
+
+/* TOGGLE */
+.tgl { position:relative; width:46px; height:25px; cursor:pointer; flex-shrink:0; }
+.tgl input { opacity:0; width:0; height:0; }
+.tslider { position:absolute; top:0; left:0; right:0; bottom:0; background:var(--bg4); border-radius:25px; transition:.3s; }
+.tslider:before { position:absolute; content:""; height:19px; width:19px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+input:checked+.tslider { background:var(--gold); }
+input:checked+.tslider:before { transform:translateX(21px); }
+.trow { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid #1E1E1E; }
+.trow:last-child { border-bottom:none; }
+
+/* FINANCE */
+.frow { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid #1E1E1E; }
+.frow:last-child { border-bottom:none; }
+.famt { font-size:14px; font-weight:700; color:var(--gold); }
+
+/* SUMMARY */
+.srow { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E1E1E; }
+.srow:last-child { border-bottom:none; }
+.sl { font-size:13px; color:var(--text2); }
+.sv { font-size:13px; font-weight:600; }
+.stot { display:flex; justify-content:space-between; padding:13px 0 0; }
+.stot-l { font-size:15px; font-weight:700; }
+.stot-v { font-size:19px; font-weight:800; color:var(--gold); }
+
+/* MISC */
+.greet { background:linear-gradient(135deg,#1A0800,#0A0400); border-radius:var(--r); padding:18px; margin-bottom:18px; border:1px solid var(--gold-dark); display:flex; align-items:center; gap:13px; }
+.gtitle { font-size:17px; font-weight:800; color:var(--gold); }
+.gsub { font-size:12px; color:var(--text2); margin-top:3px; }
+.hist { background:var(--bg2); border-radius:var(--r); padding:13px; margin-bottom:9px; border:1px solid #2A2A2A; display:flex; align-items:center; gap:13px; }
+.hic { width:40px; height:40px; border-radius:11px; background:var(--bg3); display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; }
+.htitle { font-size:13px; font-weight:700; }
+.hsub { font-size:11px; color:var(--text2); margin-top:2px; }
+.hamt { font-size:14px; font-weight:800; color:var(--gold); }
+.locbtn { background:var(--bg2); border:2px solid #2A2A2A; border-radius:var(--r); padding:15px; width:100%; color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; gap:11px; margin-bottom:9px; transition:all .2s; }
+.locbtn.sel { border-color:var(--gold); background:rgba(245,166,35,.07); }
+.divid { height:1px; background:#1E1E1E; margin:14px 0; }
+.sectitle { font-size:12px; color:var(--text2); text-transform:uppercase; letter-spacing:.7px; margin-bottom:11px; margin-top:3px; }
+.compitem { background:var(--bg2); border-radius:var(--r); padding:13px; margin-bottom:9px; border:1px solid #2A2A2A; border-left:4px solid var(--orange); }
+.cmeta { font-size:11px; color:var(--text2); margin-bottom:5px; }
+.ctxt { font-size:13px; line-height:1.5; }
+
+/* PIN CHANGE */
+.pinch { background:var(--bg3); border:1px solid #333; border-radius:var(--rs); padding:9px 13px; color:var(--gold); font-size:17px; font-weight:800; width:120px; text-align:center; letter-spacing:4px; }
+.pinch:focus { outline:none; border-color:var(--gold); }
+.setrow { display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid #1E1E1E; }
+.setrow:last-child { border-bottom:none; }
+.setlbl { font-size:13px; font-weight:600; }
+.setsub { font-size:11px; color:var(--text2); margin-top:2px; }
+
+/* PHONE INPUT */
+.phwrap { display:flex; align-items:center; background:var(--bg3); border:1px solid #333; border-radius:var(--rs); overflow:hidden; margin-bottom:11px; }
+.phflag { padding:0 11px; font-size:19px; border-right:1px solid #333; }
+.phinput { flex:1; background:transparent; border:none; color:var(--text); font-size:16px; padding:13px 11px; }
+.phinput:focus { outline:none; }
+.otpbox { display:flex; gap:9px; justify-content:center; margin-bottom:14px; }
+.otpd { background:var(--bg3); border:1px solid #333; border-radius:var(--rs); padding:11px; font-size:21px; font-weight:800; text-align:center; width:58px; color:var(--text); }
+.otpd:focus { outline:none; border-color:var(--gold); }
+
+/* NOTIF */
+.notif { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; padding:11px 22px; border-radius:30px; font-size:13px; font-weight:700; z-index:9999; animation:nfin .3s ease,nfout .3s ease 2.2s forwards; white-space:nowrap; pointer-events:none; }
+@keyframes nfin { from{opacity:0;top:0} to{opacity:1;top:20px} }
+@keyframes nfout { to{opacity:0;top:0} }
+
+/* ADMIN PANEL ENTRY */
+.adentry { background:var(--bg2); border:1px solid var(--gold-dark); border-radius:var(--r); padding:13px 17px; display:flex; align-items:center; gap:11px; cursor:pointer; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+<!-- SCREEN: LANGUAGE -->
+<div class="screen active" id="s-lang">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;gap:28px;">
+    <div style="text-align:center;">
+      <div style="font-size:52px;">⛽</div>
+      <div style="font-size:26px;font-weight:900;color:var(--gold);margin-top:10px;">333 OIL</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px;">Яндекс.Такси для бензина</div>
+    </div>
+    <div style="width:100%;max-width:280px;display:flex;flex-direction:column;gap:12px;">
+      <div onclick="setLang('ru')" style="background:var(--bg2);border:2px solid var(--gold-dark);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;">
+        <div style="font-size:30px;">🇷🇺</div>
+        <div style="font-size:17px;font-weight:800;margin-top:7px;">Русский</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">Продолжить на русском</div>
+      </div>
+      <div onclick="setLang('uz')" style="background:var(--bg2);border:2px solid #2A2A2A;border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;">
+        <div style="font-size:30px;">🇺🇿</div>
+        <div style="font-size:17px;font-weight:800;margin-top:7px;">O'zbek</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">O'zbek tilida davom etish</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: PHONE REG -->
+<div class="screen" id="s-reg">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:35px 22px;gap:22px;">
+    <div style="text-align:center;">
+      <div style="font-size:44px;">📱</div>
+      <div class="gtitle" style="margin-top:10px;" id="rg-title">Введите номер телефона</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;" id="rg-sub">Мы отправим код подтверждения</div>
+    </div>
+    <div style="width:100%;">
+      <div class="phwrap">
+        <div class="phflag">🇺🇿 +998</div>
+        <input class="phinput" type="tel" id="ph-num" placeholder="90 123 45 67" maxlength="9"/>
+      </div>
+      <button class="btn bp" id="rg-btn" onclick="sendOTP()">Получить код</button>
+    </div>
+    <div id="otp-wrap" style="display:none;width:100%;text-align:center;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:11px;" id="rg-otp-hint">Введите 4-значный код из SMS</div>
+      <div class="otpbox">
+        <input class="otpd" type="tel" maxlength="1" id="o1" oninput="onxt(this,'o2')"/>
+        <input class="otpd" type="tel" maxlength="1" id="o2" oninput="onxt(this,'o3')"/>
+        <input class="otpd" type="tel" maxlength="1" id="o3" oninput="onxt(this,'o4')"/>
+        <input class="otpd" type="tel" maxlength="1" id="o4" oninput="onxt(this,null)"/>
+      </div>
+      <button class="btn bp" id="rg-verify" onclick="verifyOTP()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: HOME -->
+<div class="screen" id="s-home">
+  <div class="hdr">
+    <div class="logo"><div class="logo-ic">⛽</div><div class="logo-tx">333 OIL</div></div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div class="lsw">
+        <div class="lbtn active" id="lb-ru" onclick="setLang('ru')">RU</div>
+        <div class="lbtn" id="lb-uz" onclick="setLang('uz')">UZ</div>
+      </div>
+      <button class="hdr-act" onclick="go('s-history')">🕐</button>
+    </div>
+  </div>
+  <div class="cnt">
+    <div class="greet">
+      <div style="font-size:33px;">👋</div>
+      <div>
+        <div class="gtitle" id="hm-greet">Привет!</div>
+        <div class="gsub" id="hm-phone">+998 90 123 45 67</div>
+      </div>
+    </div>
+    <div class="sectitle" id="hm-ptitle">Цены сегодня</div>
+    <div class="pgrid" id="price-grid"></div>
+    <div class="obtn" id="hm-obtn" onclick="go('s-fuel')">🚗 Заказать топливо</div>
+    <div class="sectitle" id="hm-ltitle">Последний заказ</div>
+    <div class="hist" onclick="go('s-track')">
+      <div class="hic">⛽</div>
+      <div style="flex:1;">
+        <div class="htitle" id="hm-lorder">АИ-95 — 30 литров</div>
+        <div class="hsub" id="hm-ltime">Сегодня, 01:15 • Выполнен ✅</div>
+      </div>
+      <div class="hamt">414 000</div>
+    </div>
+    <div class="adentry" onclick="go('s-pin')">
+      <span style="font-size:21px;">⚙️</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--gold);" id="hm-dpanel">Панель водителя</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="hm-dsub">Управление заказами</div>
+      </div>
+      <span style="color:var(--text2);">›</span>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nitem active" onclick="go('s-home')"><span class="nic">🏠</span><span id="n1">Главная</span></button>
+    <button class="nitem" onclick="go('s-fuel')"><span class="nic">⛽</span><span id="n2">Заказать</span></button>
+    <button class="nitem" onclick="go('s-track')"><span class="nic">📍</span><span id="n3">Статус</span></button>
+    <button class="nitem" onclick="go('s-history')"><span class="nic">📋</span><span id="n4">История</span></button>
+  </div>
+</div>
+
+<!-- SCREEN: ORDER FUEL -->
+<div class="screen" id="s-fuel">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-home')">← <span id="of-bk">Назад</span></button>
+    <div class="hdr-title" id="of-title">Выбор топлива</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt">
+    <div class="sectitle" id="of-step">Шаг 1 из 4</div>
+    <div id="fuel-list"></div>
+  </div>
+  <div style="padding:0 18px 18px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg);">
+    <button class="btn bp" id="of-next" onclick="goLiters()">Далее — Количество →</button>
+  </div>
+</div>
+
+<!-- SCREEN: LITERS -->
+<div class="screen" id="s-liters">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-fuel')">← <span id="ol-bk">Назад</span></button>
+    <div class="hdr-title" id="ol-title">Количество</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt">
+    <div class="sectitle" id="ol-step">Шаг 2 из 4</div>
+    <div class="card">
+      <div class="ctitle" id="ol-chosen">Выбранное топливо</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span id="sel-fuel" style="font-size:17px;font-weight:800;color:var(--gold);">АИ-95</span>
+        <span id="sel-price" style="font-size:13px;color:var(--text2);">13 800 сўм/л</span>
+      </div>
+    </div>
+    <div class="sectitle" id="ol-quick">Быстрый выбор</div>
+    <div class="lpresets">
+      <div class="lbtn2" onclick="pickL(this,5)"><div class="lv">5</div><div class="lu" id="lu0">литров</div></div>
+      <div class="lbtn2" onclick="pickL(this,10)"><div class="lv">10</div><div class="lu" id="lu1">литров</div></div>
+      <div class="lbtn2" onclick="pickL(this,20)"><div class="lv">20</div><div class="lu" id="lu2">литров</div></div>
+      <div class="lbtn2 sel" onclick="pickL(this,30)"><div class="lv">30</div><div class="lu" id="lu3">литров</div></div>
+      <div class="lbtn2" onclick="pickL(this,40)"><div class="lv">40</div><div class="lu" id="lu4">литров</div></div>
+      <div class="lbtn2" onclick="pickL(this,50)"><div class="lv">50</div><div class="lu" id="lu5">литров</div></div>
+      <div class="lbtn2" onclick="pickL(this,60)"><div class="lv">60</div><div class="lu" id="lu6">литров</div></div>
+    </div>
+    <div class="sectitle" id="ol-manual">Или вручную</div>
+    <input class="linput" type="number" id="cust-l" placeholder="5" min="5" max="200" oninput="updTotal()"/>
+    <div id="stock-warn" style="display:none;background:rgba(220,53,69,.12);border:1px solid #dc3545;border-radius:var(--r);padding:12px;margin-bottom:14px;color:#ff6b6b;font-size:13px;font-weight:600;"></div>
+    <!-- УСЛОВИЯ ДОСТАВКИ -->
+    <div style="background:rgba(245,166,35,.08);border:1px solid var(--gold-dark);border-radius:var(--r);padding:14px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;" id="delivery-title">🚚 Условия доставки:</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;" id="delivery-rules">
+        • Минимальный заказ: <b style="color:var(--text);">5 литров</b><br>
+        • 5–9 л: <b style="color:var(--text);">5 000 сўм + 1 500/км</b><br>
+        • 10+ л до 3 км: <b style="color:var(--green);">Бесплатно ✅</b><br>
+        • 10+ л более 3 км: <b style="color:var(--text);">1 500 сўм/км</b>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stot"><div class="stot-l" id="ol-total">Итого:</div><div class="stot-v" id="total-p">414 000 сўм</div></div>
+    </div>
+  </div>
+  <div style="padding:0 18px 18px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg);">
+    <button class="btn bp" id="ol-next" onclick="go('s-loc')">Далее — Местоположение →</button>
+  </div>
+</div>
+
+<!-- SCREEN: LOCATION -->
+<div class="screen" id="s-loc">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-liters')">← <span id="lc-bk">Назад</span></button>
+    <div class="hdr-title" id="lc-title">Место доставки</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt-np">
+    <div class="mapc" style="margin:14px 14px 0;height:210px;"><div id="orderMap" style="width:100%;height:100%;"></div></div>
+    <div style="padding:14px;">
+      <div class="sectitle" id="lc-step">Шаг 3 из 4</div>
+      <button class="locbtn sel" onclick="useGPS()">
+        <span style="font-size:22px;">📍</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;" id="lc-gps">Моё местоположение (GPS)</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="gps-coord">Ташкент, Узбекистан</div>
+        </div>
+      </button>
+      <div class="divid" style="margin:10px 0;"></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:7px;" id="lc-manual">Или введите адрес вручную:</div>
+      <input style="background:var(--bg3);border:1px solid #333;border-radius:11px;padding:13px;width:100%;color:var(--text);font-size:14px;margin-bottom:14px;" type="text" id="addr-input" placeholder="ул. Навои, 23..."/>
+    </div>
+  </div>
+  <div style="padding:0 18px 18px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg);">
+    <button class="btn bp" id="lc-next" onclick="go('s-pay')">Далее — Оплата →</button>
+  </div>
+</div>
+
+<!-- SCREEN: PAYMENT -->
+<div class="screen" id="s-pay">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-loc')">← <span id="py-bk">Назад</span></button>
+    <div class="hdr-title" id="py-title">Способ оплаты</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt">
+    <div class="sectitle" id="py-step">Шаг 4 из 4</div>
+    <div class="paygrid">
+      <div class="payopt sel" onclick="pickPay(this,'Click')"><div class="payic">💙</div><div class="paynm">Click</div></div>
+      <div class="payopt" onclick="pickPay(this,'Payme')"><div class="payic">💜</div><div class="paynm">Payme</div></div>
+      <div class="payopt" onclick="pickPay(this,'Humo')"><div class="payic">🟢</div><div class="paynm">Humo</div></div>
+      <div class="payopt" onclick="pickPay(this,'UzCard')"><div class="payic">🔵</div><div class="paynm">UzCard</div></div>
+      <div class="payopt" onclick="pickPay(this,'Apelsin')"><div class="payic">🟠</div><div class="paynm">Apelsin</div></div>
+      <div class="payopt" onclick="pickPayCash()"><div class="payic">💵</div><div class="paynm" id="py-cash">Наличные</div></div>
+    </div>
+    <div class="divid"></div>
+    <div class="sectitle" id="py-sumtitle">Сводка заказа</div>
+    <div class="card">
+      <div class="srow"><div class="sl" id="ps-fl">Топливо</div><div class="sv" id="sum-fuel">АИ-95</div></div>
+      <div class="srow"><div class="sl" id="ps-lt">Количество</div><div class="sv" id="sum-liters">30 литров</div></div>
+      <div class="srow"><div class="sl" id="ps-lc">Местоположение</div><div class="sv">GPS 📍</div></div>
+      <div class="srow"><div class="sl" id="ps-py">Оплата</div><div class="sv" id="sum-pay">Click</div></div>
+      <div class="stot"><div class="stot-l" id="ps-tot">Итого:</div><div class="stot-v" id="sum-tot">414 000 сўм</div></div>
+    </div>
+  </div>
+  <div style="padding:0 18px 18px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg);">
+    <button class="btn bp" id="py-confirm" onclick="confirmOrder()">✅ Подтвердить заказ</button>
+  </div>
+</div>
+
+<!-- SCREEN: TRACKING -->
+<div class="screen" id="s-track">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-home')">← <span id="tk-bk">Назад</span></button>
+    <div class="hdr-title" id="tk-title">Отслеживание</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt-np">
+    <div style="padding:70px 28px;text-align:center;">
+      <div style="font-size:56px;margin-bottom:18px;">💬</div>
+      <div class="sectitle" id="tk-stitle" style="font-size:18px;">Статус заказа приходит в чат</div>
+      <div style="color:var(--text2);font-size:14px;line-height:1.7;margin-top:12px;" id="tk-desc">Как только водитель примет заказ, выедет и завершит доставку — сообщения об этом придут прямо сюда, в чат с ботом.</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nitem" onclick="go('s-home')"><span class="nic">🏠</span><span id="n1b">Главная</span></button>
+    <button class="nitem" onclick="go('s-fuel')"><span class="nic">⛽</span><span id="n2b">Заказать</span></button>
+    <button class="nitem active"><span class="nic">📍</span><span id="n3b">Статус</span></button>
+    <button class="nitem" onclick="go('s-history')"><span class="nic">📋</span><span id="n4b">История</span></button>
+  </div>
+</div>
+
+<!-- SCREEN: HISTORY -->
+<div class="screen" id="s-history">
+  <div class="hdr">
+    <button class="hdr-back" onclick="go('s-home')">← <span id="hi-bk">Назад</span></button>
+    <div class="hdr-title" id="hi-title">История заказов</div>
+    <div style="width:65px;"></div>
+  </div>
+  <div class="cnt">
+    <div class="hist"><div class="hic">⛽</div><div style="flex:1;"><div class="htitle">АИ-95 — 30 л</div><div class="hsub" id="hi-1">Сегодня, 02:15 • Выполнен ✅</div></div><div class="hamt">414 000</div></div>
+    <div class="hist"><div class="hic">⛽</div><div style="flex:1;"><div class="htitle">АИ-92 — 20 л</div><div class="hsub" id="hi-2">Вчера, 14:30 • Выполнен ✅</div></div><div class="hamt">250 000</div></div>
+    <div class="hist"><div class="hic">⛽</div><div style="flex:1;"><div class="htitle">Дизель — 40 л</div><div class="hsub" id="hi-3">20 июн, 10:00 • Выполнен ✅</div></div><div class="hamt">476 000</div></div>
+  </div>
+  <div class="bnav">
+    <button class="nitem" onclick="go('s-home')"><span class="nic">🏠</span><span id="n1c">Главная</span></button>
+    <button class="nitem" onclick="go('s-fuel')"><span class="nic">⛽</span><span id="n2c">Заказать</span></button>
+    <button class="nitem" onclick="go('s-track')"><span class="nic">📍</span><span id="n3c">Статус</span></button>
+    <button class="nitem active"><span class="nic">📋</span><span id="n4c">История</span></button>
+  </div>
+</div>
+
+<!-- SCREEN: ADMIN PIN -->
+<div class="screen" id="s-pin">
+  <div class="pinsc">
+    <div style="text-align:center;">
+      <div style="font-size:46px;">⛽</div>
+      <div style="font-size:21px;font-weight:800;color:var(--gold);margin-top:9px;">333 OIL</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:7px;" id="pin-sub">Введите PIN для входа</div>
+    </div>
+    <div class="pdots">
+      <div class="pdot" id="pd0"></div>
+      <div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div>
+      <div class="pdot" id="pd3"></div>
+      <div class="pdot" id="pd4"></div>
+    </div>
+    <div class="perr" id="pin-err">❌ Неверный PIN</div>
+    <div class="pkbd">
+      <div class="pkey" onclick="pk('1')">1</div><div class="pkey" onclick="pk('2')">2</div><div class="pkey" onclick="pk('3')">3</div>
+      <div class="pkey" onclick="pk('4')">4</div><div class="pkey" onclick="pk('5')">5</div><div class="pkey" onclick="pk('6')">6</div>
+      <div class="pkey" onclick="pk('7')">7</div><div class="pkey" onclick="pk('8')">8</div><div class="pkey" onclick="pk('9')">9</div>
+      <div class="pkey emp"></div><div class="pkey" onclick="pk('0')">0</div><div class="pkey del" onclick="pdel()">⌫</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);" id="pin-hint-txt">Демо PIN: <strong style="color:var(--gold);" id="pin-demo">—</strong></div>
+    <button onclick="go('s-home')" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;" id="pin-back">← Назад</button>
+  </div>
+</div>
+
+<!-- SCREEN: ADMIN -->
+<div class="screen" id="s-admin">
+  <div class="adhdr">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="adtitle">⚙️ <span id="ad-title">Панель водителя</span></div>
+        <div class="adsub">333 OIL • Лабо #333</div>
+      </div>
+      <button onclick="go('s-home')" style="background:rgba(245,166,35,.1);border:1px solid var(--gold-dark);border-radius:9px;padding:7px 11px;color:var(--gold);font-size:12px;cursor:pointer;" id="ad-exit">🔒 Выйти</button>
+    </div>
+  </div>
+  <div class="adtabs">
+    <div class="adtab active" id="at-ord" onclick="adTab(this,'at-orders')">📋 Заказы</div>
+    <div class="adtab" id="at-map" onclick="adTab(this,'at-map-c')">🗺️ Карта</div>
+    <div class="adtab" id="at-pri" onclick="adTab(this,'at-prices')">💰 Цены</div>
+    <div class="adtab" id="at-tnk" onclick="adTab(this,'at-tank')">🛢️ Бак</div>
+    <div class="adtab" id="at-fin" onclick="adTab(this,'at-finance')">📊 Финансы</div>
+    <div class="adtab" id="at-set" onclick="adTab(this,'at-settings')">⚙️ Настройки</div>
+    <div class="adtab" id="at-com" onclick="adTab(this,'at-complaints')">💬 Жалобы</div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="adcnt active" id="at-orders">
+    <div style="padding:14px 14px 100px;">
+      <div class="sectitle" id="ad-new">🔴 Новые заказы (1)</div>
+      <div class="ocrd onew">
+        <div class="otop"><div class="oid">#ORD-0042 • Только что</div><div class="obadge bnew" id="b-new">🔴 Новый</div></div>
+        <div class="oclient">👤 Алишер Назаров</div>
+        <div class="odet">
+          <div class="odet-row">⛽ АИ-95 — 30 литров</div>
+          <div class="odet-row">📍 ул. Амира Темура, 15</div>
+          <div class="odet-row">💙 Click</div>
+          <div class="odet-row" style="color:var(--gold);font-weight:700;">💰 414 000 сўм</div>
+        </div>
+        <div class="oacts">
+          <button class="oabtn ocal" onclick="doCall()">📞</button>
+          <button class="oabtn oacc" id="acc-btn" onclick="accOrder(this)">✅ Принять</button>
+        </div>
+      </div>
+      <div class="sectitle" style="margin-top:14px;" id="ad-act">🔵 В работе (1)</div>
+      <div class="ocrd oact">
+        <div class="otop"><div class="oid">#ORD-0041 • 10 мин</div><div class="obadge bact" id="b-act">🔵 Еду</div></div>
+        <div class="oclient">👤 Санжар Юсупов</div>
+        <div class="odet">
+          <div class="odet-row">⛽ АИ-92 — 20 литров</div>
+          <div class="odet-row">📍 ул. Навои, 47</div>
+          <div class="odet-row">💵 Наличные</div>
+          <div class="odet-row" style="color:var(--gold);font-weight:700;">💰 250 000 сўм</div>
+        </div>
+        <div class="oacts">
+          <button class="oabtn ocal" onclick="doCall()">📞</button>
+          <button class="oabtn odon" id="don-btn" onclick="donOrder(this)">⛽ Выполнен</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP TAB -->
+  <div class="adcnt" id="at-map-c">
+    <div style="padding:14px;">
+      <div class="mapc" style="height:300px;"><div id="adminMap" style="width:100%;height:100%;"></div></div>
+      <div class="sgrid">
+        <div class="scrd"><div class="sval">🚗</div><div class="slbl" id="ad-online">Лабо #333 онлайн</div></div>
+        <div class="scrd"><div class="sval">2</div><div class="slbl" id="ad-actcnt">Активных заказов</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICES TAB -->
+  <div class="adcnt" id="at-prices">
+    <div style="padding:14px;">
+      <div class="card">
+        <div class="ctitle" id="ad-ptitle">Изменить цены</div>
+        <div class="prow"><div class="prow-l"><span style="font-size:19px;">🟡</span><div class="prow-name">АИ-92</div></div><div><input class="pinput2" type="number" id="p92" value="12500"/><div style="font-size:10px;color:var(--text2);text-align:right;margin-top:2px;">сўм/л</div></div></div>
+        <div class="prow"><div class="prow-l"><span style="font-size:19px;">🟠</span><div class="prow-name">АИ-95</div></div><div><input class="pinput2" type="number" id="p95" value="13800"/><div style="font-size:10px;color:var(--text2);text-align:right;margin-top:2px;">сўм/л</div></div></div>
+        <div class="prow"><div class="prow-l"><span style="font-size:19px;">🔴</span><div class="prow-name">АИ-98</div></div><div><input class="pinput2" type="number" id="p98" value="15500"/><div style="font-size:10px;color:var(--text2);text-align:right;margin-top:2px;">сўм/л</div></div></div>
+        <div class="prow"><div class="prow-l"><span style="font-size:19px;">⚫</span><div class="prow-name">Дизель</div></div><div><input class="pinput2" type="number" id="pdiz" value="11900"/><div style="font-size:10px;color:var(--text2);text-align:right;margin-top:2px;">сўм/л</div></div></div>
+      </div>
+      <button class="btn bp" id="ad-savep" onclick="savePrices()">💾 Сохранить цены</button>
+    </div>
+  </div>
+
+  <!-- TANK TAB -->
+  <div class="adcnt" id="at-tank">
+    <div style="padding:14px;">
+      <div class="card">
+        <div class="ctitle" id="ad-tanktitle">Наличие топлива</div>
+        <div class="trow">
+          <div><div style="font-size:13px;font-weight:600;">🟡 АИ-92</div><div style="font-size:11px;color:var(--text2);margin-top:2px;" id="ts92">В наличии • 120 л</div></div>
+          <label class="tgl"><input type="checkbox" id="tg92" checked onchange="toggleFuel('АИ-92',this.checked)"/><span class="tslider"></span></label>
+        </div>
+        <div class="trow">
+          <div><div style="font-size:13px;font-weight:600;">🟠 АИ-95</div><div style="font-size:11px;color:var(--text2);margin-top:2px;" id="ts95">В наличии • 150 л</div></div>
+          <label class="tgl"><input type="checkbox" id="tg95" checked onchange="toggleFuel('АИ-95',this.checked)"/><span class="tslider"></span></label>
+        </div>
+        <div class="trow">
+          <div><div style="font-size:13px;font-weight:600;">🔴 АИ-98</div><div style="font-size:11px;color:var(--text2);margin-top:2px;" id="ts98">В наличии • 40 л</div></div>
+          <label class="tgl"><input type="checkbox" id="tg98" checked onchange="toggleFuel('АИ-98',this.checked)"/><span class="tslider"></span></label>
+        </div>
+        <div class="trow">
+          <div><div style="font-size:13px;font-weight:600;">⚫ Дизель</div><div style="font-size:11px;color:var(--text2);margin-top:2px;" id="tsdiz">В наличии • 40 л</div></div>
+          <label class="tgl"><input type="checkbox" id="tgdiz" checked onchange="toggleFuel('Дизель',this.checked)"/><span class="tslider"></span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCE TAB -->
+  <div class="adcnt" id="at-finance">
+    <div style="padding:14px;">
+      <div class="sgrid">
+        <div class="scrd"><div class="sval" style="font-size:16px;">1 140 000</div><div class="slbl" id="fin-td">Сегодня (сўм)</div></div>
+        <div class="scrd"><div class="sval">5</div><div class="slbl" id="fin-ord">Заказов сегодня</div></div>
+        <div class="scrd"><div class="sval" style="font-size:16px;">8 740 000</div><div class="slbl" id="fin-mn">За месяц (сўм)</div></div>
+        <div class="scrd"><div class="sval">38</div><div class="slbl" id="fin-mnord">Заказов за месяц</div></div>
+      </div>
+      <div class="card">
+        <div class="ctitle" id="fin-bypay">По способам оплаты</div>
+        <div class="frow"><div style="font-size:13px;">💙 Click</div><div class="famt">414 000</div></div>
+        <div class="frow"><div style="font-size:13px;">💜 Payme</div><div class="famt">250 000</div></div>
+        <div class="frow"><div style="font-size:13px;">💵 <span id="fin-cash">Наличные</span></div><div class="famt">476 000</div></div>
+        <div class="frow"><div style="font-size:13px;">🟢 Humo</div><div class="famt">0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="adcnt" id="at-settings">
+    <div style="padding:14px;">
+      <div class="card">
+        <div class="ctitle" id="st-pintitle">Изменить PIN-код</div>
+        <div class="setrow">
+          <div><div class="setlbl" id="st-cur">Текущий PIN</div><div class="setsub" id="st-cursub">Действующий 5-значный код</div></div>
+          <input class="pinch" type="password" id="cur-pin" placeholder="•••••" maxlength="5"/>
+        </div>
+        <div class="setrow">
+          <div><div class="setlbl" id="st-new">Новый PIN</div><div class="setsub" id="st-newsub">Только 5 цифр</div></div>
+          <input class="pinch" type="password" id="new-pin" placeholder="•••••" maxlength="5"/>
+        </div>
+        <div class="setrow">
+          <div><div class="setlbl" id="st-conf">Повторите PIN</div></div>
+          <input class="pinch" type="password" id="conf-pin" placeholder="•••••" maxlength="5"/>
+        </div>
+        <button class="btn bp" style="margin-top:9px;" id="st-savebtn" onclick="changePin()">🔐 Сохранить PIN</button>
+      </div>
+      <div class="card">
+        <div class="ctitle" id="st-phtitle">Привязанный номер</div>
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div style="font-size:22px;">📱</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--gold);" id="st-ph">+998 90 123 45 67</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="st-phsub">Номер подтверждён ✅</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle" id="st-langtitle">Язык интерфейса</div>
+        <div style="display:flex;gap:11px;">
+          <div id="sl-ru" onclick="setLang('ru')" style="flex:1;background:var(--gold);border-radius:11px;padding:13px;text-align:center;cursor:pointer;color:#000;font-weight:700;">🇷🇺 Русский</div>
+          <div id="sl-uz" onclick="setLang('uz')" style="flex:1;background:var(--bg3);border-radius:11px;padding:13px;text-align:center;cursor:pointer;font-weight:700;">🇺🇿 O'zbek</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLAINTS TAB -->
+  <div class="adcnt" id="at-complaints">
+    <div style="padding:14px;">
+      <div class="compitem"><div class="cmeta">👤 Алишер Н. • Сегодня 01:30</div><div class="ctxt" id="cp1">Водитель опоздал на 15 минут</div></div>
+      <div class="compitem"><div class="cmeta">👤 Умид К. • Вчера 18:45</div><div class="ctxt" id="cp2">Хотел бы оплату через Uzum Bank</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end phone -->
+
+<script>
+var lang = 'ru';
+var correctPIN = '33333';
+var pinCode = '';
+var regPhone = '+998 90 123 45 67';
+var ST = { fuel:'АИ-95', fuelPrice:13800, liters:30, pay:'Click' };
+var fuelOn = { 'АИ-92':true, 'АИ-95':true, 'АИ-98':true, 'Дизель':true };
+var fuelPx = { 'АИ-92':12500, 'АИ-95':13800, 'АИ-98':15500, 'Дизель':11900 };
+var tashkent = [41.2995, 69.2401];
+var trackMap = null, orderMap = null, adminMap = null;
+var drvMark = null, drvInt = null;
+
+var TX = {
+  ru: {
+    n1:'Главная',n2:'Заказать',n3:'Статус',n4:'История',
+    greet:'Привет!',ptitle:'Цены сегодня',obtn:'🚗 Заказать топливо',
+    ltitle:'Последний заказ',lorder:'АИ-95 — 30 литров',ltime:'Сегодня, 01:15 • Выполнен ✅',
+    dpanel:'Панель водителя',dsub:'Управление заказами',
+    ofbk:'Назад',oftitle:'Выбор топлива',ofstep:'Шаг 1 из 4',ofnext:'Далее — Количество →',
+    olbk:'Назад',oltitle:'Количество',olstep:'Шаг 2 из 4',olchosen:'Выбранное топливо',
+    olquick:'Быстрый выбор',olmanual:'Или вручную',oltotal:'Итого:',olnext:'Далее — Местоположение →',
+    lunit:'литров',
+    lcbk:'Назад',lctitle:'Место доставки',lcstep:'Шаг 3 из 4',lcgps:'Моё местоположение (GPS)',
+    lcmanual:'Или введите адрес вручную:',lcnext:'Далее — Оплата →',
+    pybk:'Назад',pytitle:'Способ оплаты',pystep:'Шаг 4 из 4',pycash:'Наличные',
+    pysumtitle:'Сводка заказа',psfl:'Топливо',pslt:'Количество',pslc:'Местоположение',
+    pspy:'Оплата',pstot:'Итого:',pyconfirm:'✅ Подтвердить заказ',
+    tkbk:'Назад',tktitle:'Статус',
+    tkstitle:'Статус заказа приходит в чат',tkdesc:'Как только водитель примет заказ, выедет и завершит доставку — сообщения об этом придут прямо сюда, в чат с ботом.',
+    ss4:'Прибыл',ss5:'Заправлено',tkcall:'📞 Позвонить',tkcancel:'❌ Отменить',
+    tkctitle:'Написать жалобу',tksend:'Отправить',tkph:'Ваше сообщение...',
+    hibk:'Назад',hititle:'История заказов',
+    hi1:'Сегодня, 02:15 • Выполнен ✅',hi2:'Вчера, 14:30 • Выполнен ✅',hi3:'20 июн, 10:00 • Выполнен ✅',
+    pinsub:'Введите PIN для входа',pinerr:'❌ Неверный PIN',pinhint:'Демо PIN:',pinback:'← Назад',
+    adtitle:'Панель водителя',adexit:'🔒 Выйти',
+    ators:'📋 Заказы',atmap:'🗺️ Карта',atpri:'💰 Цены',attnk:'🛢️ Бак',
+    atfin:'📊 Финансы',atset:'⚙️ Настройки',atcom:'💬 Жалобы',
+    adnew:'🔴 Новые заказы (1)',adact:'🔵 В работе (1)',
+    bnew:'🔴 Новый',bact:'🔵 Еду',bdone:'✅ Готово',
+    accbtn:'✅ Принять',donbtn:'⛽ Выполнен',
+    adonline:'Лабо #333 онлайн',adactcnt:'Активных заказов',
+    adptitle:'Изменить цены',adsavep:'💾 Сохранить цены',
+    adtanktitle:'Наличие топлива',
+    tavail:'В наличии',tunavail:'Нет в наличии',
+    fintd:'Сегодня (сўм)',finord:'Заказов сегодня',finmn:'За месяц (сўм)',finmnord:'Заказов за месяц',
+    finbypay:'По способам оплаты',fincash:'Наличные',
+    stpintitle:'Изменить PIN-код',stcur:'Текущий PIN',stcursub:'Действующий 5-значный код',
+    stnew:'Новый PIN',stnewsub:'Только 5 цифр',stconf:'Повторите PIN',
+    stsavebtn:'🔐 Сохранить PIN',stphtitle:'Привязанный номер',stphsub:'Номер подтверждён ✅',
+    stlangtitle:'Язык интерфейса',
+    delivtitle:'🚚 Условия доставки:',
+    delivrules:'• Минимальный заказ: <b style="color:var(--text);">5 литров</b><br>• 5–9 л: <b style="color:var(--text);">5 000 сўм + 1 500/км</b><br>• 10+ л до 3 км: <b style="color:var(--green);">Бесплатно ✅</b><br>• 10+ л более 3 км: <b style="color:var(--text);">1 500 сўм/км</b>',
+    fud92:'Стандарт • Для большинства авто',fud95:'Улучшенный • Иномарки',
+    fud98:'Премиум • Спортивные авто',fuddiz:'Для дизельных двигателей',
+    funavail:'Нет в наличии',
+    rgtitle:'Введите номер телефона',rgsub:'Мы отправим код подтверждения',rgbtn:'Получить код',
+    rgotph:'Введите 4-значный код из SMS',rgverify:'Подтвердить',
+    notifOrder:'✅ Заказ принят! Водитель скоро выедет',notifCall:'📞 Звоним...',
+    notifCancel:'❌ Заказ отменён',notifComp:'✅ Жалоба отправлена',
+    notifPrices:'✅ Цены обновлены',notifAccepted:'✅ Заказ принят!',notifDone:'🎉 Заказ выполнен!',
+    notifPinOk:'✅ PIN изменён!',notifPinErr:'❌ Ошибка: проверьте текущий PIN',
+    notifPinShort:'PIN должен быть 5 цифр',notifPinMismatch:'❌ Новые PIN не совпадают',
+    notifOtpSent:'📲 Код отправлен! (Демо: 1234)',notifOtpOk:'✅ Номер подтверждён!'
+  },
+  uz: {
+    n1:'Bosh sahifa',n2:'Buyurtma',n3:'Holat',n4:'Tarix',
+    greet:'Salom!',ptitle:'Bugungi narxlar',obtn:"🚗 Yoqilg'i buyurtma",
+    ltitle:'Oxirgi buyurtma',lorder:'AI-95 — 30 litr',ltime:'Bugun, 01:15 • Bajarildi ✅',
+    dpanel:'Haydovchi paneli',dsub:'Buyurtmalarni boshqarish',
+    ofbk:'Orqaga',oftitle:"Yoqilg'i tanlash",ofstep:'1-qadam 4 dan',ofnext:'Keyingi — Miqdor →',
+    olbk:'Orqaga',oltitle:'Miqdor',olstep:'2-qadam 4 dan',olchosen:"Tanlangan yoqilg'i",
+    olquick:'Tezkor tanlash',olmanual:"Yoki qo'lda kiriting",oltotal:'Jami:',olnext:'Keyingi — Joylashuv →',
+    lunit:'litr',
+    lcbk:'Orqaga',lctitle:'Yetkazish joyi',lcstep:'3-qadam 4 dan',lcgps:'Mening joylashuvim (GPS)',
+    lcmanual:'Yoki manzil kiriting:',lcnext:"Keyingi — To'lov →",
+    pybk:'Orqaga',pytitle:"To'lov usuli",pystep:'4-qadam 4 dan',pycash:'Naqd pul',
+    pysumtitle:'Buyurtma xulosasi',psfl:"Yoqilg'i",pslt:'Miqdor',pslc:'Joylashuv',
+    pspy:"To'lov",pstot:'Jami:',pyconfirm:'✅ Buyurtmani tasdiqlash',
+    tkbk:'Orqaga',tktitle:'Holat',
+    tkstitle:"Buyurtma holati chatga keladi",tkdesc:"Haydovchi buyurtmani qabul qilishi, yo'lga chiqishi va yetkazib berishi haqida xabarlar shu yerga, bot bilan chatga keladi.",
+    ss1:'Buyurtma qabul qilindi',ss2:'Haydovchi chiqdi',ss3:'Haydovchi kelmoqda',
+    ss4:'Yetib keldi',ss5:"To'ldirildi",tkcall:"📞 Qo'ng'iroq",tkcancel:'❌ Bekor qilish',
+    tkctitle:'Shikoyat yozing',tksend:'Yuborish',tkph:'Xabaringiz...',
+    hibk:'Orqaga',hititle:'Buyurtmalar tarixi',
+    hi1:'Bugun, 02:15 • Bajarildi ✅',hi2:'Kecha, 14:30 • Bajarildi ✅',hi3:'20 iyun, 10:00 • Bajarildi ✅',
+    pinsub:'Haydovchi paneliga kirish uchun PIN',pinerr:"❌ Noto'g'ri PIN",pinhint:'Demo PIN:',pinback:'← Orqaga',
+    adtitle:'Haydovchi paneli',adexit:'🔒 Chiqish',
+    ators:'📋 Buyurtmalar',atmap:'🗺️ Xarita',atpri:'💰 Narxlar',attnk:"🛢️ Bak",
+    atfin:'📊 Moliya',atset:'⚙️ Sozlamalar',atcom:'💬 Shikoyatlar',
+    adnew:'🔴 Yangi buyurtmalar (1)',adact:'🔵 Jarayonda (1)',
+    bnew:'🔴 Yangi',bact:'🔵 Ketayapman',bdone:'✅ Tayyor',
+    accbtn:'✅ Qabul qilish',donbtn:'⛽ Bajarildi',
+    adonline:'Labo #333 onlayn',adactcnt:'Faol buyurtmalar',
+    adptitle:"Narxlarni o'zgartirish",adsavep:'💾 Narxlarni saqlash',
+    adtanktitle:'Bakdagi yoqilg\'i',
+    tavail:'Mavjud',tunavail:'Mavjud emas',
+    fintd:"Bugun (so'm)",finord:'Bugungi buyurtmalar',finmn:"Oylik (so'm)",finmnord:'Oylik buyurtmalar',
+    finbypay:"To'lov usuli bo'yicha",fincash:'Naqd pul',
+    stpintitle:"PIN-kodni o'zgartirish",stcur:'Joriy PIN',stcursub:'Amaldagi 5 xonali kod',
+    stnew:'Yangi PIN',stnewsub:'Faqat 5 ta raqam',stconf:'PINni tasdiqlang',
+    stsavebtn:'🔐 PINni saqlash',stphtitle:"Bog'langan raqam",stphsub:'Raqam tasdiqlangan ✅',
+    stlangtitle:'Interfeys tili',
+    delivtitle:"🚚 Yetkazish shartlari:",
+    delivrules:"• Minimal buyurtma: <b style=\"color:var(--text);\">5 litr</b><br>• 5–9 l: <b style=\"color:var(--text);\">5 000 so'm + 1 500/km</b><br>• 10+ l 3 km gacha: <b style=\"color:var(--green);\">Bepul ✅</b><br>• 10+ l 3 km dan ortiq: <b style=\"color:var(--text);\">1 500 so'm/km</b>",
+    fud92:"Standart • Ko'pchilik avtomobillar",fud95:'Yaxshilangan • Chet el avtomobillari',
+    fud98:'Premium • Sport avtomobillari',fuddiz:'Dizel dvigatellar uchun',
+    funavail:'Mavjud emas',
+    rgtitle:'Telefon raqamini kiriting',rgsub:'SMS orqali tasdiqlash kodi',rgbtn:'Kod olish',
+    rgotph:'SMSdagi 4 xonali kodni kiriting',rgverify:'Tasdiqlash',
+    notifOrder:"✅ Buyurtma qabul qilindi!",notifCall:"📞 Qo'ng'iroq qilinmoqda...",
+    notifCancel:'❌ Buyurtma bekor qilindi',notifComp:'✅ Shikoyat yuborildi',
+    notifPrices:'✅ Narxlar yangilandi',notifAccepted:'✅ Qabul qilindi!',notifDone:'🎉 Bajarildi!',
+    notifPinOk:"✅ PIN o'zgartirildi!",notifPinErr:"❌ Xato: joriy PIN noto'g'ri",
+    notifPinShort:"PIN 5 ta raqam bo'lishi kerak",notifPinMismatch:"❌ Yangi PINlar mos kelmaydi",
+    notifOtpSent:'📲 Kod yuborildi! (Demo: 1234)',notifOtpOk:'✅ Raqam tasdiqlandi!'
+  }
+};
+
+function t(k){ return TX[lang][k] || k; }
+
+function setLang(l) {
+  lang = l;
+  var x = TX[l];
+  // lang buttons
+  var lru = document.getElementById('lb-ru');
+  var luz = document.getElementById('lb-uz');
+  if(lru){ lru.className = l==='ru' ? 'lbtn active' : 'lbtn'; }
+  if(luz){ luz.className = l==='uz' ? 'lbtn active' : 'lbtn'; }
+  var slru = document.getElementById('sl-ru');
+  var sluz = document.getElementById('sl-uz');
+  if(slru){ slru.style.background = l==='ru' ? 'var(--gold)' : 'var(--bg3)'; slru.style.color = l==='ru' ? '#000' : 'var(--text)'; }
+  if(sluz){ sluz.style.background = l==='uz' ? 'var(--gold)' : 'var(--bg3)'; sluz.style.color = l==='uz' ? '#000' : 'var(--text)'; }
+
+  var ids = {
+    'n1':x.n1,'n2':x.n2,'n3':x.n3,'n4':x.n4,
+    'n1b':x.n1,'n2b':x.n2,'n3b':x.n3,'n4b':x.n4,
+    'n1c':x.n1,'n2c':x.n2,'n3c':x.n3,'n4c':x.n4,
+    'hm-greet':x.greet,'hm-phone':regPhone,'hm-ptitle':x.ptitle,'hm-obtn':x.obtn,
+    'hm-ltitle':x.ltitle,'hm-lorder':x.lorder,'hm-ltime':x.ltime,
+    'hm-dpanel':x.dpanel,'hm-dsub':x.dsub,
+    'of-bk':x.ofbk,'of-title':x.oftitle,'of-step':x.ofstep,'of-next':x.ofnext,
+    'ol-bk':x.olbk,'ol-title':x.oltitle,'ol-step':x.olstep,'ol-chosen':x.olchosen,
+    'ol-quick':x.olquick,'ol-manual':x.olmanual,'ol-total':x.oltotal,'ol-next':x.olnext,
+    'lu1':x.lunit,'lu2':x.lunit,'lu3':x.lunit,'lu4':x.lunit,'lu5':x.lunit,'lu6':x.lunit,
+    'lc-bk':x.lcbk,'lc-title':x.lctitle,'lc-step':x.lcstep,'lc-gps':x.lcgps,
+    'lc-manual':x.lcmanual,'lc-next':x.lcnext,
+    'py-bk':x.pybk,'py-title':x.pytitle,'py-step':x.pystep,'py-cash':x.pycash,
+    'py-sumtitle':x.pysumtitle,'ps-fl':x.psfl,'ps-lt':x.pslt,'ps-lc':x.pslc,
+    'ps-py':x.pspy,'ps-tot':x.pstot,'py-confirm':x.pyconfirm,
+    'tk-bk':x.tkbk,'tk-title':x.tktitle,
+    'tk-stitle':x.tkstitle,'tk-desc':x.tkdesc,
+    'hi-bk':x.hibk,'hi-title':x.hititle,'hi-1':x.hi1,'hi-2':x.hi2,'hi-3':x.hi3,
+    'pin-sub':x.pinsub,'pin-err':x.pinerr,'pin-hint-txt':x.pinhint,'pin-back':x.pinback,
+    'ad-title':x.adtitle,'ad-exit':x.adexit,
+    'at-ord':x.ators,'at-map':x.atmap,'at-pri':x.atpri,'at-tnk':x.attnk,
+    'at-fin':x.atfin,'at-set':x.atset,'at-com':x.atcom,
+    'ad-new':x.adnew,'ad-act':x.adact,
+    'b-new':x.bnew,'b-act':x.bact,'acc-btn':x.accbtn,'don-btn':x.donbtn,
+    'ad-online':x.adonline,'ad-actcnt':x.adactcnt,
+    'ad-ptitle':x.adptitle,'ad-savep':x.adsavep,
+    'ad-tanktitle':x.adtanktitle,
+    'fin-td':x.fintd,'fin-ord':x.finord,'fin-mn':x.finmn,'fin-mnord':x.finmnord,
+    'fin-bypay':x.finbypay,'fin-cash':x.fincash,
+    'st-pintitle':x.stpintitle,'st-cur':x.stcur,'st-cursub':x.stcursub,
+    'st-new':x.stnew,'st-newsub':x.stnewsub,'st-conf':x.stconf,
+    'st-savebtn':x.stsavebtn,'st-phtitle':x.stphtitle,'st-ph':regPhone,'st-phsub':x.stphsub,
+    'st-langtitle':x.stlangtitle,
+    'delivery-title':x.delivtitle,
+    'rg-title':x.rgtitle,'rg-sub':x.rgsub,'rg-btn':x.rgbtn,
+    'rg-otp-hint':x.rgotph,'rg-verify':x.rgverify
+  };
+  Object.keys(ids).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && ids[id] !== undefined) el.textContent = ids[id];
+  });
+  var dr = document.getElementById('delivery-rules');
+  if(dr) dr.innerHTML = x.delivrules;
+  var ta = document.getElementById('complaint-ta');
+  if(ta) ta.placeholder = x.tkph;
+  var ai = document.getElementById('addr-input');
+  if(ai) ai.placeholder = l==='ru' ? 'ул. Навои, 23...' : "Navoiy ko'cha, 23...";
+  renderFuels();
+  renderPriceGrid();
+  updTankLabels();
+  if(l==='ru'){
+    var s=document.getElementById('s-lang'); if(s){ var cs=s.querySelectorAll('div'); }
+  }
+  go('s-home');
+}
+
+function el(id){ return document.getElementById(id); }
+
+function go(sid) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var sc = document.getElementById(sid);
+  if(sc) sc.classList.add('active');
+  window.scrollTo(0,0);
+  if(sid==='s-track') initTrackMap();
+  if(sid==='s-loc') initOrderMap();
+  if(sid==='s-pay') updSummary();
+  if(sid==='s-pin'){
+    pinCode=''; updDots();
+    var pe = el('pin-err'); if(pe) pe.classList.remove('show');
+    var pd = el('pin-demo'); if(pd) pd.textContent = correctPIN;
+  }
+}
+
+// ===== PHONE REG =====
+function sendOTP(){
+  var v = el('ph-num').value.replace(/\D/g,'');
+  if(v.length < 9){ showN('❌ '+(lang==='ru'?'Введите номер полностью':"Raqamni to'liq kiriting")); return; }
+  regPhone = '+998 '+v.slice(0,2)+' '+v.slice(2,5)+' '+v.slice(5,7)+' '+v.slice(7,9);
+  el('otp-wrap').style.display='block';
+  el('rg-btn').style.display='none';
+  showN(t('notifOtpSent'));
+}
+function onxt(el2,nid){ if(el2.value.length>=1 && nid) document.getElementById(nid).focus(); }
+function verifyOTP(){
+  var code=['o1','o2','o3','o4'].map(function(i){ return el(i).value; }).join('');
+  if(code.length===4){
+    var hmp=el('hm-phone'); if(hmp) hmp.textContent=regPhone;
+    var stp=el('st-ph'); if(stp) stp.textContent=regPhone;
+    showN(t('notifOtpOk'));
+    setTimeout(function(){ go('s-home'); },1000);
+  } else {
+    showN('❌ '+(lang==='ru'?'Введите все 4 цифры':"4 ta raqamni kiriting"));
+  }
+}
+
+// ===== ЖИВОЙ ОСТАТОК (с бота) =====
+var liveStock = {};
+var STOCK_API_URL = 'https://333oil-production.up.railway.app/stock';
+
+function fetchLiveStock(){
+  fetch(STOCK_API_URL).then(function(r){ return r.json(); }).then(function(data){
+    liveStock = data || {};
+  }).catch(function(){
+    // Тихо игнорируем: если API недоступен, бот всё равно проверит остаток при оформлении заказа
+    liveStock = {};
+  });
+}
+
+// ===== FUELS =====
+var fuelData = [
+  {name:'АИ-92',icon:'🟡',dk:'fud92'},
+  {name:'АИ-95',icon:'🟠',dk:'fud95'},
+  {name:'АИ-98',icon:'🔴',dk:'fud98'},
+  {name:'Дизель',icon:'⚫',dk:'fuddiz'}
+];
+
+function renderFuels(){
+  var c = el('fuel-list');
+  if(!c) return;
+  c.innerHTML='';
+  fuelData.forEach(function(f){
+    var avail = fuelOn[f.name];
+    var price = fuelPx[f.name];
+    var d = document.createElement('div');
+    d.className = 'fopt' + (avail?'':' unavail') + (ST.fuel===f.name&&avail?' sel':'');
+    var rside = avail
+      ? '<div class="fopt-price">'+price.toLocaleString('ru')+' сўм</div>'
+      : '<div class="unavail-badge">'+t('funavail')+'</div>';
+    d.innerHTML = '<div class="fopt-l"><div class="fopt-ic">'+f.icon+'</div><div><div class="fopt-name">'+f.name+'</div><div class="fopt-desc">'+t(f.dk)+'</div></div></div>'+rside;
+    if(avail){
+      (function(fn,fp){ d.onclick=function(){ pickFuel(d,fn,fp); }; })(f.name,price);
+    }
+    c.appendChild(d);
+  });
+}
+
+function renderPriceGrid(){
+  var c = el('price-grid');
+  if(!c) return;
+  c.innerHTML='';
+  fuelData.forEach(function(f){
+    if(!fuelOn[f.name]) return;
+    var price = fuelPx[f.name];
+    var d = document.createElement('div');
+    d.className='pcrd';
+    d.innerHTML='<div class="fn">'+f.name+'</div><div class="fp">'+price.toLocaleString('ru')+'</div><div class="fu">сўм/литр</div>';
+    (function(fn){ d.onclick=function(){ ST.fuel=fn; ST.fuelPrice=fuelPx[fn]; go('s-fuel'); renderFuels(); }; })(f.name);
+    c.appendChild(d);
+  });
+}
+
+function pickFuel(el2,name,price){
+  document.querySelectorAll('.fopt').forEach(function(e){ e.classList.remove('sel'); });
+  el2.classList.add('sel');
+  ST.fuel=name; ST.fuelPrice=price;
+}
+
+function goLiters(){
+  var sfd=el('sel-fuel'); if(sfd) sfd.textContent=ST.fuel;
+  var spr=el('sel-price'); if(spr) spr.textContent=ST.fuelPrice.toLocaleString('ru')+' сўм/л';
+  fetchLiveStock();
+  updTotal();
+  go('s-liters');
+}
+
+// ===== LITERS =====
+function pickL(el2,v){
+  document.querySelectorAll('.lbtn2').forEach(function(e){ e.classList.remove('sel'); });
+  el2.classList.add('sel');
+  el('cust-l').value='';
+  ST.liters=v;
+  updTotal();
+}
+// ===== ДОСТАВКА =====
+var BASE_LAT = 41.2995; // Координаты базы (Ташкент центр)
+var BASE_LNG = 69.2401;
+var ST_delivery = 0;
+var ST_distance = 0;
+
+function calcDistance(lat1, lng1, lat2, lng2){
+  var R = 6371;
+  var dLat = (lat2-lat1)*Math.PI/180;
+  var dLng = (lng2-lng1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function calcDelivery(liters, distKm){
+  if(liters < 5) return -1; // Меньше минимума
+  if(liters < 10){
+    // 5-9 литров: 5000 + 1500/км
+    return 5000 + Math.round(distKm * 1500);
+  } else {
+    // 10+ литров: до 3 км бесплатно
+    if(distKm <= 3) return 0;
+    return Math.round((distKm - 3) * 1500);
+  }
+}
+
+function updTotal(){
+  var cv=el('cust-l').value;
+  if(cv) ST.liters=parseInt(cv)||0;
+
+  var fuelTotal = ST.liters * ST.fuelPrice;
+
+  // Считаем доставку если есть GPS
+  if(realLat && realLng){
+    ST_distance = calcDistance(BASE_LAT, BASE_LNG, realLat, realLng);
+    ST_delivery = calcDelivery(ST.liters, ST_distance);
+  } else {
+    ST_delivery = 0;
+    ST_distance = 0;
+  }
+
+  var grandTotal = ST_delivery >= 0 ? fuelTotal + ST_delivery : fuelTotal;
+  var tp = el('total-p');
+  if(tp){
+    var txt = grandTotal.toLocaleString('ru') + ' сўм';
+    if(ST_delivery > 0) txt += '\n(+' + ST_delivery.toLocaleString('ru') + ' сўм доставка)';
+    if(ST_delivery === 0 && ST.liters >= 10) txt += '\n✅ Доставка бесплатно';
+    tp.textContent = txt;
+  }
+
+  // Проверка живого остатка топлива
+  var warn = el('stock-warn');
+  var nextBtn = el('ol-next');
+  if(warn){
+    var avail = liveStock[ST.fuel];
+    if(avail !== undefined && ST.liters > avail){
+      warn.style.display = 'block';
+      warn.textContent = lang === 'uz'
+        ? ('⚠️ Faqat ' + avail + ' l mavjud (' + ST.fuel + ')')
+        : ('⚠️ В наличии только ' + avail + ' л (' + ST.fuel + ')');
+      if(nextBtn){ nextBtn.disabled = true; nextBtn.style.opacity = '0.5'; }
+    } else {
+      warn.style.display = 'none';
+      if(nextBtn){ nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+    }
+  }
+}
+
+// ===== PAYMENT =====
+function pickPay(el2,name){
+  document.querySelectorAll('.payopt').forEach(function(e){ e.classList.remove('sel'); });
+  el2.classList.add('sel');
+  ST.pay=name;
+}
+function pickPayCash(){
+  document.querySelectorAll('.payopt').forEach(function(e){ e.classList.remove('sel'); });
+  event.currentTarget.classList.add('sel');
+  ST.pay=t('pycash');
+}
+function updSummary(){
+  var fuelTotal = ST.liters * ST.fuelPrice;
+  if(realLat && realLng){
+    ST_distance = calcDistance(BASE_LAT, BASE_LNG, realLat, realLng);
+    ST_delivery = calcDelivery(ST.liters, ST_distance);
+  }
+  var grandTotal = ST_delivery >= 0 ? fuelTotal + ST_delivery : fuelTotal;
+
+  var sf=el('sum-fuel'); if(sf) sf.textContent=ST.fuel;
+  var sl=el('sum-liters'); if(sl) sl.textContent=ST.liters+' '+t('lunit');
+  var sp=el('sum-pay'); if(sp) sp.textContent=ST.pay;
+
+  // Показываем доставку в сводке
+  var distEl = el('sum-delivery');
+  if(!distEl){
+    // Создаём строку доставки если нет
+    var payRow = el('ps-py') ? el('ps-py').closest('.srow') : null;
+    if(payRow){
+      var delivRow = document.createElement('div');
+      delivRow.className = 'srow';
+      delivRow.innerHTML = '<div class="sl" id="ps-del-l">Доставка</div><div class="sv" id="sum-delivery">—</div>';
+      payRow.parentNode.insertBefore(delivRow, payRow);
+    }
+  }
+  var delEl = el('sum-delivery');
+  if(delEl){
+    if(ST_delivery === 0 && ST.liters >= 10){
+      delEl.textContent = lang==='ru' ? '✅ Бесплатно' : '✅ Bepul';
+      delEl.style.color = 'var(--green)';
+    } else if(ST_delivery > 0){
+      delEl.textContent = ST_delivery.toLocaleString('ru') + ' сўм';
+      delEl.style.color = 'var(--gold)';
+    } else {
+      delEl.textContent = '—';
+    }
+  }
+
+  var st=el('sum-tot'); if(st) st.textContent=grandTotal.toLocaleString('ru')+' сўм';
+}
+function confirmOrder(){
+  showN(t('notifOrder'));
+  setTimeout(function(){ go('s-track'); },1500);
+}
+
+// ===== GPS =====
+var realLat = null;
+var realLng = null;
+
+function useGPS(){
+  var gc = el('gps-coord');
+  if(gc) gc.textContent = lang==='ru' ? '⏳ Определяем...' : '⏳ Aniqlanmoqda...';
+
+  if(!navigator.geolocation){
+    showN('❌ '+(lang==='ru'?'GPS не поддерживается':'GPS qo\'llab-quvvatlanmaydi'));
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      realLat = pos.coords.latitude;
+      realLng = pos.coords.longitude;
+      var lat = realLat.toFixed(5);
+      var lng = realLng.toFixed(5);
+      if(gc) gc.textContent = lat+'°N, '+lng+'°E';
+
+      // Считаем расстояние от базы
+      ST_distance = calcDistance(BASE_LAT, BASE_LNG, realLat, realLng);
+      ST_delivery = calcDelivery(ST.liters, ST_distance);
+
+      var distTxt = ST_distance.toFixed(1)+' км от базы';
+      if(ST_delivery === 0 && ST.liters >= 10){
+        distTxt += ' • ✅ бесплатно';
+      } else if(ST_delivery > 0){
+        distTxt += ' • 🚚 '+ST_delivery.toLocaleString('ru')+' сўм';
+      }
+      if(gc) gc.textContent = lat+'°N, '+lng+'°E — '+distTxt;
+
+      showN('📍 '+(lang==='ru'?'Местоположение определено!':'Joylashuv aniqlandi!'));
+      updTotal();
+      // Обновляем карту
+      if(orderMap){
+        var latlng = [realLat, realLng];
+        orderMap.setView(latlng, 16);
+        orderMap.eachLayer(function(layer){
+          if(layer instanceof L.Marker) orderMap.removeLayer(layer);
+        });
+        L.marker(latlng, {icon:L.divIcon({html:'📍',className:'',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(orderMap);
+      }
+    },
+    function(err){
+      var msg = lang==='ru' ? 'Не удалось определить' : 'Aniqlab bo\'lmadi';
+      if(err.code === 1) msg = lang==='ru' ? 'Разрешите доступ к GPS' : 'GPS ruxsatini bering';
+      if(gc) gc.textContent = msg;
+      showN('❌ '+msg);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+// ===== MAPS =====
+function initTrackMap(){
+  if(trackMap) return;
+  var m = document.getElementById('trackMap');
+  if(!m) return;
+  trackMap = L.map('trackMap',{zoomControl:false,attributionControl:false}).setView(tashkent,14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(trackMap);
+  var di=L.divIcon({html:'🚗',className:'',iconSize:[30,30],iconAnchor:[15,15]});
+  var ci=L.divIcon({html:'📍',className:'',iconSize:[30,30],iconAnchor:[15,30]});
+  drvMark=L.marker([41.291,69.232],{icon:di}).addTo(trackMap);
+  L.marker(tashkent,{icon:ci}).addTo(trackMap);
+  animDrv();
+}
+function animDrv(){
+  if(drvInt) clearInterval(drvInt);
+  var step=0;
+  var route=[[41.291,69.232],[41.293,69.238],[41.295,69.243],[41.297,69.247],[41.2995,69.2401]];
+  drvInt=setInterval(function(){
+    if(step<route.length){ drvMark.setLatLng(route[step]); step++; }
+    else clearInterval(drvInt);
+  },2000);
+}
+function initOrderMap(){
+  if(orderMap) return;
+  var m=document.getElementById('orderMap');
+  if(!m) return;
+  orderMap=L.map('orderMap',{zoomControl:false,attributionControl:false}).setView(tashkent,14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(orderMap);
+  L.marker(tashkent,{icon:L.divIcon({html:'📍',className:'',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(orderMap);
+  setTimeout(function(){ orderMap.invalidateSize(); },200);
+}
+function initAdminMap(){
+  if(adminMap) return;
+  var m=document.getElementById('adminMap');
+  if(!m) return;
+  adminMap=L.map('adminMap',{zoomControl:false,attributionControl:false}).setView(tashkent,13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(adminMap);
+  L.marker([41.291,69.232],{icon:L.divIcon({html:'🚗',className:'',iconSize:[32,32],iconAnchor:[16,16]})}).addTo(adminMap);
+  L.marker([41.302,69.251],{icon:L.divIcon({html:'⛽',className:'',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(adminMap);
+  L.marker([41.296,69.228],{icon:L.divIcon({html:'⛽',className:'',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(adminMap);
+  setTimeout(function(){ adminMap.invalidateSize(); },200);
+}
+
+// ===== PIN =====
+function pk(d){
+  if(pinCode.length>=5) return;
+  pinCode+=d;
+  updDots();
+  if(pinCode.length===5){
+    setTimeout(function(){
+      if(pinCode===correctPIN){
+        pinCode=''; updDots();
+        renderFuels(); renderPriceGrid();
+        go('s-admin');
+      } else { pinErr(); }
+    },200);
+  }
+}
+function pdel(){
+  pinCode=pinCode.slice(0,-1);
+  updDots();
+  var pe=el('pin-err'); if(pe) pe.classList.remove('show');
+}
+function updDots(){
+  for(var i=0;i<5;i++){
+    var d=el('pd'+i);
+    if(d){ d.className='pdot'+(i<pinCode.length?' fill':''); }
+  }
+}
+function pinErr(){
+  for(var i=0;i<5;i++){ var d=el('pd'+i); if(d) d.className='pdot err'; }
+  var pe=el('pin-err'); if(pe) pe.classList.add('show');
+  setTimeout(function(){ pinCode=''; updDots(); },800);
+}
+
+// ===== CHANGE PIN =====
+function changePin(){
+  var cur=el('cur-pin').value;
+  var nw=el('new-pin').value;
+  var cf=el('conf-pin').value;
+  if(cur!==correctPIN){ showN(t('notifPinErr')); return; }
+  if(nw.length!==5||cf.length!==5){ showN(t('notifPinShort')); return; }
+  if(nw!==cf){ showN(t('notifPinMismatch')); return; }
+  correctPIN=nw;
+  el('cur-pin').value=''; el('new-pin').value=''; el('conf-pin').value='';
+  showN(t('notifPinOk'));
+}
+
+// ===== FUEL TOGGLE =====
+function toggleFuel(name,on){
+  fuelOn[name]=on;
+  updTankLabels();
+  renderFuels();
+  renderPriceGrid();
+  var lit={'АИ-92':120,'АИ-95':150,'АИ-98':40,'Дизель':40};
+  showN(on ? '✅ '+name+' — '+t('tavail') : '⚠️ '+name+' — '+t('tunavail'));
+}
+function updTankLabels(){
+  var lit={'АИ-92':120,'АИ-95':150,'АИ-98':40,'Дизель':40};
+  var ids={'АИ-92':'ts92','АИ-95':'ts95','АИ-98':'ts98','Дизель':'tsdiz'};
+  Object.keys(ids).forEach(function(name){
+    var e=el(ids[name]);
+    if(e) e.textContent=fuelOn[name] ? t('tavail')+' • '+lit[name]+' л' : t('tunavail');
+  });
+}
+
+// ===== ADMIN TABS =====
+function adTab(el2,tabId){
+  document.querySelectorAll('.adtab').forEach(function(t2){ t2.classList.remove('active'); });
+  document.querySelectorAll('.adcnt').forEach(function(c){ c.classList.remove('active'); });
+  el2.classList.add('active');
+  var tc=el(tabId); if(tc) tc.classList.add('active');
+  if(tabId==='at-map-c') setTimeout(initAdminMap,100);
+}
+
+// ===== ADMIN ACTIONS =====
+function accOrder(btn){
+  var card=btn.closest('.ocrd');
+  var badge=card.querySelector('.obadge');
+  if(badge){ badge.textContent=t('bact'); badge.className='obadge bact'; }
+  card.className='ocrd oact';
+  btn.textContent=t('donbtn'); btn.className='oabtn odon';
+  btn.onclick=function(){ donOrder(this); };
+  showN(t('notifAccepted'));
+}
+function donOrder(btn){
+  var card=btn.closest('.ocrd');
+  var badge=card.querySelector('.obadge');
+  if(badge){ badge.textContent=t('bdone'); badge.className='obadge bdone'; }
+  card.className='ocrd odone';
+  var acts=card.querySelector('.oacts'); if(acts) acts.remove();
+  showN(t('notifDone'));
+}
+function savePrices(){
+  var v92=parseInt(el('p92').value)||12500;
+  var v95=parseInt(el('p95').value)||13800;
+  var v98=parseInt(el('p98').value)||15500;
+  var vdz=parseInt(el('pdiz').value)||11900;
+  fuelPx['АИ-92']=v92; fuelPx['АИ-95']=v95; fuelPx['АИ-98']=v98; fuelPx['Дизель']=vdz;
+  renderFuels(); renderPriceGrid();
+  showN(t('notifPrices'));
+}
+function doCall(){ showN(t('notifCall')); }
+function doCancel(){ showN(t('notifCancel')); }
+function sendComp(){ showN(t('notifComp')); }
+
+// ===== NOTIF =====
+function showN(txt){
+  var old=document.querySelector('.notif'); if(old) old.remove();
+  var n=document.createElement('div');
+  n.className='notif'; n.textContent=txt;
+  document.body.appendChild(n);
+  setTimeout(function(){ if(n.parentNode) n.remove(); },2700);
+}
+
+// ===== TELEGRAM WEBAPP =====
+var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+function tgInit(){
+  if(!tg){ return; }
+  tg.ready();
+  tg.expand();
+  // Получаем имя пользователя из Telegram
+  if(tg.initDataUnsafe && tg.initDataUnsafe.user){
+    var u = tg.initDataUnsafe.user;
+    var name = u.first_name + (u.last_name ? ' '+u.last_name : '');
+    regPhone = name;
+    var hmp = el('hm-phone'); if(hmp) hmp.textContent = name;
+    var stp = el('st-ph'); if(stp) stp.textContent = name;
+    // Сразу на главную — регистрация не нужна
+    setTimeout(function(){ go('s-home'); }, 100);
+  }
+  // Кнопка Назад Telegram
+  if(tg.BackButton){
+    tg.BackButton.onClick(function(){
+      var active = document.querySelector('.screen.active');
+      if(!active) return;
+      var backMap = {
+        's-fuel':'s-home','s-liters':'s-fuel',
+        's-loc':'s-liters','s-pay':'s-loc',
+        's-track':'s-home','s-history':'s-home',
+        's-pin':'s-home','s-admin':'s-home','s-reg':'s-lang'
+      };
+      var nxt = backMap[active.id];
+      if(nxt){ go(nxt); } else { tg.BackButton.hide(); }
+    });
+  }
+}
+
+function tgUpdButtons(sid){
+  if(!tg) return;
+  var noBack = ['s-home','s-lang'];
+  if(tg.BackButton){
+    if(noBack.indexOf(sid) === -1){ tg.BackButton.show(); }
+    else { tg.BackButton.hide(); }
+  }
+  if(tg.MainButton){
+    tg.MainButton.hide();
+    if(sid === 's-pay'){
+      tg.MainButton.setText(lang==='ru' ? '✅ Подтвердить заказ' : '✅ Buyurtmani tasdiqlash');
+      tg.MainButton.color = '#F5A623';
+      tg.MainButton.textColor = '#000000';
+      tg.MainButton.show();
+      tg.MainButton.onClick(function(){ confirmOrder(); });
+    }
+  }
+}
+
+// Отправка заказа боту
+function sendOrderToBot(){
+  var locText = el('gps-coord') ? el('gps-coord').textContent : 'GPS';
+  var fuelTotal = ST.liters * ST.fuelPrice;
+  var grandTotal = ST_delivery >= 0 ? fuelTotal + ST_delivery : fuelTotal;
+
+  var data = {
+    action: 'new_order',
+    fuel: ST.fuel,
+    liters: ST.liters,
+    price_per_liter: ST.fuelPrice,
+    fuel_total: fuelTotal,
+    delivery_fee: ST_delivery > 0 ? ST_delivery : 0,
+    distance_km: Math.round(ST_distance * 10) / 10,
+    total: grandTotal,
+    payment: ST.pay,
+    address: el('addr-input') ? el('addr-input').value : '',
+    location: locText,
+    lat: realLat,
+    lng: realLng,
+    lang: lang
+  };
+  if(tg && tg.sendData){
+    tg.sendData(JSON.stringify(data));
+  } else {
+    showN(t('notifOrder'));
+    setTimeout(function(){ go('s-track'); }, 1500);
+  }
+}
+
+function confirmOrder(){
+  // Проверка минимального заказа
+  if(ST.liters < 5){
+    showN('❌ '+(lang==='ru'?'Минимальный заказ 5 литров':'Minimal buyurtma 5 litr'));
+    return;
+  }
+
+  var fuelTotal = ST.liters * ST.fuelPrice;
+  var grandTotal = ST_delivery >= 0 ? fuelTotal + ST_delivery : fuelTotal;
+
+  var delivText = '';
+  if(ST_delivery === 0 && ST.liters >= 10){
+    delivText = lang==='ru' ? '\n🚚 Доставка: бесплатно' : "\n🚚 Yetkazish: bepul";
+  } else if(ST_delivery > 0){
+    delivText = '\n🚚 '+(lang==='ru'?'Доставка':'Yetkazish')+': '+ST_delivery.toLocaleString('ru')+' сўм';
+  } else {
+    delivText = '\n🚚 '+(lang==='ru'?'Доставка':'Yetkazish')+': 5 000 + 1 500/км';
+  }
+
+  var msg = lang==='ru'
+    ? 'Подтвердить заказ?\n'+ST.fuel+' — '+ST.liters+' л'+delivText+'\nИтого: '+grandTotal.toLocaleString('ru')+' сўм'
+    : "Buyurtmani tasdiqlaysizmi?\n"+ST.fuel+' — '+ST.liters+" l"+delivText+'\nJami: '+grandTotal.toLocaleString('ru')+" so'm";
+
+  if(tg && tg.showConfirm){
+    tg.showConfirm(msg, function(ok){
+      if(ok) sendOrderToBot();
+    });
+  } else {
+    showN(t('notifOrder'));
+    setTimeout(function(){ go('s-track'); }, 1500);
+  }
+}
+
+// Обновляем go() — добавляем управление кнопками Telegram
+var _go = go;
+go = function(sid){
+  _go(sid);
+  tgUpdButtons(sid);
+};
+
+// ===== INIT =====
+window.onload = function(){
+  tgInit();
+  renderFuels();
+  renderPriceGrid();
+  fetchLiveStock();
+};
+</script>
+</body>
+</html>
